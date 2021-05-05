@@ -1,0 +1,4 @@
+*.pyc
+db/*
+logs/*
+__pycache__/*
