@@ -4,6 +4,7 @@ import threading
 import pickle
 import os
 from pprint import pprint
+import json
 
 REPORTS_DB_PATH = "db/reports"
 BLOCKS_DB_PATH = "db/blocks"

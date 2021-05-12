@@ -170,7 +170,7 @@ class Server(threading.Thread):
 
 	def send_no_new_config(self, ip):
 		if ip in self.conns.keys():
-			self.conns[ip].send(NO_NEW_CONFIG)
+			self.conns[ip].send(NO_NEW_CONFIG.encode("ascii"))
 
 	def send_config(self, ip, conf_id):
 		js = self.configuration_manager.get_json_config(conf_id)
@@ -179,7 +179,7 @@ class Server(threading.Thread):
 			return
 
 		if ip in self.conns.keys():
-			self.conns[ip].send(js)
+			self.conns[ip].send(js.encode("ascii"))
 
 		self.logger.log(f"Sent config {conf_id} to ip {ip}")
 
@@ -190,7 +190,7 @@ class Server(threading.Thread):
 		if self.dockers[docker_id]["curr_config"] != config_id:
 			return self.send_config(ip, self.dockers[docker_id]["curr_config"])
 
-		if self.configuration_manager.conf_time(self.dockers[docker_id]["curr_config"]) < config_creation_time:
+		if self.configuration_manager.conf_time(self.dockers[docker_id]["curr_config"]) > config_creation_time:
 			return self.send_config(ip, self.dockers[docker_id]["curr_config"])
 
 		return self.send_no_new_config(ip)			
