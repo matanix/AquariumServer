@@ -1,4 +1,6 @@
 import traceback
+from colors import colors
+import os
 
 CLI_SIGN = ">"
 HELP_COMMAND = "help"
@@ -16,8 +18,8 @@ SHOW_CONFIGS_COMMAND = "configs"
 SHOW_BLOCKS_COMMAND = "blocks"
 CONF_INFO_COMMAND = "conf info"
 INVALID_PARAMETERS = "Invalid parameters."
-HELP_FORMAT = "{} -> {}"
-UNKNOWN_COMMAND = "Unknown command."
+HELP_FORMAT = colors.BOLD + colors.OKBLUE + "{}" + colors.ENDC + "  -> {}"
+UNKNOWN_COMMAND = colors.FAIL + "Unknown command." + colors.ENDC
 
 class CLI():
 	def __init__(self, args, server, logger, reporter, configuration_manager):
@@ -45,6 +47,8 @@ class CLI():
 		print (HELP_FORMAT.format(CONF_INFO_COMMAND, "show conf {id} info"))
 		print (HELP_FORMAT.format(SHOW_REPORTS_COMMAND, "show all reports"))
 		print (HELP_FORMAT.format(SHOW_BLOCKS_COMMAND, "show all blocks"))
+		print (colors.UNDERLINE + colors.BOLD + "Pro Tip" + colors.ENDC + ": You are advised to tail the log file in logs/log.txt in another terminal")
+		print ("To view changes of the server in real time")
 		return True
 
 	def exit(self, inp):
@@ -245,8 +249,12 @@ class CLI():
 		if len(inp.replace('\n', '').replace('\t', '').replace('\r', '')) == 0:
 			return True
 
+	def prep_colors(self):
+		os.system('color')
+
 	def run(self):
-		print ("Welcome to aquarium docker server.")
+		self.prep_colors()
+		print (colors.OKCYAN + "Welcome to aquarium docker server." + colors.ENDC)
 		self.help(HELP_COMMAND)
 
 		while True:
