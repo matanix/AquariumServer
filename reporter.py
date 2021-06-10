@@ -8,7 +8,7 @@ import json
 
 REPORTS_DB_PATH = "db/reports"
 BLOCKS_DB_PATH = "db/blocks"
-BLOCKED_PREFIX = "BLOCKED "
+BLOCKED_PREFIX = "block_syscall"
 
 class Reporter(threading.Thread):
 	def __init__(self, args, logger):
@@ -53,7 +53,7 @@ class Reporter(threading.Thread):
 			pickle.dump(self.blocks, blocks_db)
 
 	def is_block_msg(self, msg):
-		if str(msg).startswith(BLOCKED_PREFIX):
+		if BLOCKED_PREFIX in str(msg):
 			return True
 
 		return False
@@ -68,8 +68,7 @@ class Reporter(threading.Thread):
 
 		try:
 			js["syscalls"]
-			int(js["config_creation_time"])
-			int(js["config_id"])
+			js["pid"]
 
 		except:
 			self.logger.log(f"invalid report from docker ip {addr}, skipping")
@@ -87,14 +86,10 @@ class Reporter(threading.Thread):
 
 		self.save_reports_db()
 
-		self.server.answer_to_docker_report(docker_id, addr, js["config_id"],  js["config_creation_time"])
+		#self.server.answer_to_docker_report(docker_id, addr, js["config_id"],  js["config_creation_time"])
 
 	def handle_block(self, dt, addr, block_msg):
-		try:
-			syscall = int(block_msg.replace(BLOCKED_PREFIX, ""))
-		except:
-			self.logger.log(f"invalid block from docker ip {addr}, skipping")
-			return
+		js = json.loads(block_msg)
 
 		docker_id = self.server.get_docker_id_from_ip(addr[0])
 
@@ -103,9 +98,9 @@ class Reporter(threading.Thread):
 			return
 
 		if docker_id in self.blocks:
-			self.blocks[docker_id].append((dt, syscall))
+			self.blocks[docker_id].append((dt, js["block_syscall"], js["pid"]))
 		else:
-			self.blocks[docker_id] = [(dt, syscall)]
+			self.blocks[docker_id] = [(dt, js["block_syscall"], js["pid"])]
 
 		self.save_blocks_db()
 
@@ -134,13 +129,17 @@ class Reporter(threading.Thread):
 			dt, addr, msg = self.queue.get()
 			msg = msg.decode("ascii", "ignore")
 
-			try:
-				if self.is_block_msg(msg):
-					self.handle_block(dt, addr, msg)
-				else:
-					self.handle_report(dt, addr, msg)
+			msgl = msg.split("}")
 
-			except Exception as e:
-				self.logger.log(f"Failed to handle msg from {addr}")
-				print (str(e))
+			for msg in msgl[:-1]:
+				msg += "}"
+				try:
+					if self.is_block_msg(msg):
+						self.handle_block(dt, addr, msg)
+					else:
+						self.handle_report(dt, addr, msg)
+
+				except Exception as e:
+					self.logger.log(f"Failed to handle msg from {addr}")
+					print (str(e))
 

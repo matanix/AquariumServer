@@ -37,7 +37,7 @@ class Connection(threading.Thread):
 			except Exception as e:
 				self.logger.log(f"Conn {self.addr} died.")
 				self.server.rem_conn(self.addr)
-				exit()
+				break
 
 class Listener(threading.Thread):
 	def __init__(self, server, logger):
@@ -76,6 +76,7 @@ class Server(threading.Thread):
 			self.save_dockers_db()
 
 	def enqueue(self, addr, msg):
+		#print (msg)
 		self.queue.put((addr, msg))
 
 	def add_conn(self, conn, addr):

@@ -84,6 +84,8 @@ class ConfigurationManager():
 
 		conf = {"processes": processes_list, "blocked_syscalls": blocked_syscalls_list, "time": int(time())}
 		self.configs[new_id] = conf
+		with open('config', 'w') as f:
+			json.dump(conf, f)
 		self.save_configs_db()
 
 	def show_all(self):
